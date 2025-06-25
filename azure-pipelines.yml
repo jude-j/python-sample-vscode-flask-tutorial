@@ -1,5 +1,5 @@
 trigger:
-- main
+  - main
 
 pool:
   vmImage: ubuntu-latest
@@ -7,25 +7,25 @@ pool:
 strategy:
   matrix:
     Python310:
-      python.version: '3.10'
+      python.version: "3.10"
     Python311:
-      python.version: '3.11'
+      python.version: "3.11"
     Python312:
-      python.version: '3.12'
+      python.version: "3.12"
 
 steps:
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: '$(python.version)'
-    displayName: 'Use Python $(python.version)'
+      versionSpec: "$(python.version)"
+    displayName: "Use Python $(python.version)"
 
   - script: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
-    displayName: 'Install dependencies'
+    displayName: "Install dependencies"
 
   - task: ArchiveFiles@2
-    displayName: 'Archive files'
+    displayName: "Archive files"
     inputs:
       rootFolderOrFile: $(System.DefaultWorkingDirectory)
       includeRootFolder: false
@@ -35,11 +35,23 @@ steps:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
-      publishLocation: 'Container'
+      PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+      ArtifactName: "drop"
+      publishLocation: "Container"
 
   - script: |
       pip install pytest pytest-azurepipelines
       pytest
-    displayName: 'pytest'
+    displayName: "pytest"
+
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.11"
+      displayName: "Use Python version"
+
+  - task: AzureWebApp@1
+    displayName: "Deploy Azure Web App : my-first-flsk-app"
+    inputs:
+      azureSubscription: 50df3e64-325d-425f-996b-975ea2e7e057
+      appName: my-first-flsk-app
+      package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
